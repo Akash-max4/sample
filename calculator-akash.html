@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: lightgreen;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .calculator {
+            border: 2px solid black;
+            padding: 20px;
+            width: 270px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+        h1{
+            margin-bottom: 25px;
+            text-align: center;
+            color: coral;
+        
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 10px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid gray;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            width: 50px;
+            height: 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+<h1>Welcome to JavaScript </h1>
+
+
+<div class="calculator">
+
+<h2>Calculator</h2>
+
+<label>Num 1</label>
+<input type="number" id="num1">
+
+<label>Num 2</label>
+<input type="number" id="num2">
+
+<label>Result</label>
+<input type="text" id="result" readonly>
+
+<div class="buttons">
+    <button onclick="add()">+</button>
+    <button onclick="sub()">-</button>
+    <button onclick="mul()">*</button>
+    <button onclick="div()">/</button>
+</div>
+
+</div>
+
+<script>
+function add() {
+    let a = document.getElementById("num1").value;
+    let b = document.getElementById("num2").value;
+
+    let result = Number(a) + Number(b);
+
+    document.getElementById("result").value = result;
+}
+
+function sub() {
+    let a = document.getElementById("num1").value;
+    let b = document.getElementById("num2").value;
+
+    let result = Number(a) - Number(b);
+
+    document.getElementById("result").value = result;
+}
+
+function mul() {
+    let a = document.getElementById("num1").value;
+    let b = document.getElementById("num2").value;
+
+    let result = Number(a) * Number(b);
+
+    document.getElementById("result").value = result;
+}
+
+function div() {
+    let a = document.getElementById("num1").value;
+    let b = document.getElementById("num2").value;
+
+    let result = Number(a) / Number(b);
+
+    document.getElementById("result").value = result;
+}
+</script>
+
+</body>
+</html>
