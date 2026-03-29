@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Basic Calculator</title>
+  <style>
+    body {
+      text-align: center;
+      
+    }
+
+    #display {
+      width: 200px;
+      height: 40px;
+      font-size: 18px;
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 45px;
+      height: 40px;
+      font-size: 16px;
+      margin: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Calculator</h2>
+
+<input type="text" id="display" disabled>
+
+<br>
+
+<button onclick="add('1')">1</button>
+<button onclick="add('2')">2</button>
+<button onclick="add('3')">3</button>
+<button onclick="add('+')">+</button>
+
+<br>
+
+<button onclick="add('4')">4</button>
+<button onclick="add('5')">5</button>
+<button onclick="add('6')">6</button>
+<button onclick="add('-')">-</button>
+
+<br>
+
+<button onclick="add('7')">7</button>
+<button onclick="add('8')">8</button>
+<button onclick="add('9')">9</button>
+<button onclick="add('*')">*</button>
+
+<br>
+
+<button onclick="add('0')">0</button>
+<button onclick="add('/')">/</button>
+<button onclick="calculate()">=</button>
+<button onclick="clearDisplay()">C</button>
+
+<script>
+  function add(value) {
+    document.getElementById("display").value +=value;
+  }
+
+  // Clear display
+  function clearDisplay() {
+    document.getElementById("display").value = "";
+  }
+
+  // Calculate result
+  function calculate() {
+    var result = eval(document.getElementById("display").value);
+    document.getElementById("display").value = result;
+  }
+</script>
+
+</body>
+</html>
