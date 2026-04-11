@@ -168,6 +168,11 @@ input {
                     <label>Email_id:</label>
                     <input type="email" id="email">
                 </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="password">
+                 </div>
+                
 
             </form>
         </div>
@@ -211,17 +216,18 @@ function previewImage(event) {
 }
 
 //  submit function 
-function submitForm() {
+
+async function submitForm() {
     document.querySelectorAll("input").forEach(input => {
         input.classList.remove("error");
     });
-    
 
     let name = document.getElementById("name");
     let age = document.getElementById("age");
     let college = document.getElementById("college");
     let course = document.getElementById("course");
     let email = document.getElementById("email");
+    let password = document.getElementById("password");
 
     let valid = true;
 
@@ -229,25 +235,25 @@ function submitForm() {
         name.classList.add("error");
         valid = false;
     }
-
     if (age.value.trim() === "") {
         age.classList.add("error");
         valid = false;
     }
-
     if (college.value.trim() === "") {
         college.classList.add("error");
         valid = false;
     }
-
     if (course.value.trim() === "") {
         course.classList.add("error");
         valid = false;
     }
-
     if (email.value.trim() === "") {
         email.classList.add("error");
         valid = false;
+    }
+    if (password.value.trim() === "") {
+    password.classList.add("error");
+    valid = false;
     }
 
     if (!valid) {
@@ -255,21 +261,46 @@ function submitForm() {
         return;
     }
 
-    alert(
-        "Submitted Details:\n\n" +
-        "Name: " + name.value + "\n" +
-        "Age: " + age.value + "\n" +
-        "College: " + college.value + "\n" +
-        "Course: " + course.value + "\n" +
-        "Email: " + email.value
-    );
-
-    alert("Submitted successfully ✅");
-
-    document.getElementById("myForm").reset();
-    document.getElementById("preview").innerHTML = "Preview";
-
+    // 📦 Create data object
+    let formData = {
+       
+        Name: name.value,
+        phone_no:"",
+        Email_id: email.value,
+        password: password.value, 
+        DOB: "",
+        Address:"",
+        Father_name:"",
+        Mother_name:"",
+        college_id: 205,
+        course_id: 105         
     };
+
+    try {
+        let response = await fetch("http://127.0.0.1:5000/insert", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        let result = await response.json();
+
+       alert("Data saved to database ✅");
+
+    
+        console.log(result);
+
+        document.getElementById("myForm").reset();
+        document.getElementById("preview").innerHTML = "Preview";
+
+    } catch (error) {
+        console.log("Error:", error);
+        alert("Failed to connect to API ❌");
+    }
+}
+
 
 </script>
 

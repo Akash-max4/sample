@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Teacher Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f4ff; }
+
+/* HEADER */
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1a3c5e; color: white;
+    padding: 10px 20px; height: 55px;
+    position: sticky; top: 0; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-logo { font-size: 20px; font-weight: bold; }
+.teacher-badge {
+    background: #e65100; color: white;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+}
+.avatar-container { position: relative; cursor: pointer; }
+.avatar-container img { width: 38px; height: 38px; border-radius: 50%; border: 2px solid white; }
+.dropdown {
+    position: absolute; right: 0; top: 48px;
+    background: white; color: black;
+    width: 180px; border-radius: 8px;
+    display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    overflow: hidden; z-index: 200;
+}
+.dropdown-info { padding: 12px 14px; border-bottom: 1px solid #eee; }
+.dropdown-info strong { font-size: 13px; display: block; color: #1a3c5e; }
+.dropdown-info span { font-size: 11px; color: #888; }
+.dropdown-item {
+    padding: 10px 14px; cursor: pointer;
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+}
+.dropdown-item:hover { background: #f5f5f5; }
+.dropdown-item.danger { color: #dc2626; }
+
+/* LAYOUT */
+.main-layout { display: flex; height: calc(100vh - 55px); }
+
+/* SIDEBAR */
+.sidebar {
+    width: 220px; min-width: 220px;
+    background: white; padding: 16px 12px;
+    border-right: 1px solid #e2e8f0; overflow-y: auto;
+}
+.sidebar h3 { font-size: 10px; color: #94a3b8; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 8px; margin-bottom: 8px; }
+.menu-item {
+    padding: 10px 12px; margin: 3px 0;
+    border-radius: 8px; cursor: pointer;
+    color: #475569; display: flex; align-items: center;
+    gap: 10px; font-size: 13px; transition: 0.15s;
+}
+.menu-item:hover { background: #fff3e0; color: #e65100; }
+.menu-item.active { background: #fff3e0; color: #e65100; font-weight: bold; }
+
+/* CONTENT */
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* PAGE HEADER */
+.page-header { margin-bottom: 20px; }
+.page-header h2 { font-size: 20px; font-weight: 700; color: #1e293b; }
+.page-header p { font-size: 13px; color: #64748b; margin-top: 3px; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px; }
+.kpi-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: #1e293b; line-height: 1; }
+.kpi-sub { font-size: 11px; color: #64748b; margin-top: 5px; }
+
+/* CARD */
+.card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.card-title span { font-size: 11px; font-weight: 400; color: #94a3b8; }
+
+/* TABLE */
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+.table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #f8fafc; }
+
+/* PILLS */
+.pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.pill-green  { background: #f0fdf4; color: #16a34a; }
+.pill-red    { background: #fef2f2; color: #dc2626; }
+.pill-amber  { background: #fffbeb; color: #d97706; }
+.pill-blue   { background: #eff4ff; color: #2563eb; }
+.pill-orange { background: #fff3e0; color: #e65100; }
+
+/* GRID */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* FORM ELEMENTS */
+.form-group { margin-bottom: 14px; }
+.form-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
+.form-group input, .form-group select {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid #e2e8f0; border-radius: 7px;
+    font-size: 13px; font-family: Arial;
+}
+.form-group input:focus, .form-group select:focus {
+    border-color: #e65100; outline: none;
+}
+
+/* SAVE BUTTON */
+.btn-save {
+    background: #e65100; color: white;
+    border: none; padding: 10px 24px;
+    border-radius: 7px; cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    transition: 0.2s;
+}
+.btn-save:hover { background: #bf360c; }
+.btn-secondary {
+    background: white; color: #475569;
+    border: 1px solid #e2e8f0; padding: 10px 20px;
+    border-radius: 7px; cursor: pointer;
+    font-size: 13px; margin-right: 8px;
+}
+
+/* ATTENDANCE MARK FORM */
+.student-attend-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+}
+.student-attend-row:last-child { border-bottom: none; }
+.student-attend-name { font-size: 13px; font-weight: 500; color: #1e293b; width: 200px; }
+.student-attend-course { font-size: 12px; color: #94a3b8; }
+.attend-toggle { display: flex; gap: 8px; }
+.attend-btn {
+    padding: 5px 16px; border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer; font-size: 12px; font-weight: 600;
+    transition: 0.15s;
+}
+.attend-btn.present { background: #f0fdf4; color: #16a34a; border-color: #16a34a; }
+.attend-btn.absent  { background: #fef2f2; color: #dc2626; border-color: #dc2626; }
+.attend-btn.inactive { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+
+/* MARKS INPUT */
+.marks-input-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 14px; border-bottom: 1px solid #f1f5f9;
+}
+.marks-input-row:last-child { border-bottom: none; }
+.marks-name { width: 200px; font-size: 13px; font-weight: 500; }
+.marks-course { font-size: 12px; color: #94a3b8; flex: 1; }
+.marks-field {
+    width: 90px; padding: 6px 10px;
+    border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 13px; text-align: center;
+}
+.marks-field:focus { border-color: #e65100; outline: none; }
+
+/* SUCCESS / ERROR MSG */
+.msg { padding: 10px 14px; border-radius: 7px; font-size: 13px; margin-bottom: 14px; display: none; }
+.msg-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.msg-error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+/* BAR chart wrapper */
+.chart-wrap { position: relative; height: 260px; }
+
+/* subject info banner */
+.subject-banner {
+    background: linear-gradient(135deg, #1a3c5e, #e65100);
+    color: white; border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.subject-banner h3 { font-size: 18px; font-weight: 700; }
+.subject-banner p  { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+.subject-banner-right { text-align: right; }
+.subject-banner-right span { font-size: 28px; font-weight: 700; }
+.subject-banner-right p { font-size: 11px; opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-left">
+        <div class="header-logo">Vijaya College</div>
+        <span class="teacher-badge">🎓 Teacher</span>
+    </div>
+    <div class="avatar-container" onclick="toggleDropdown()">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+        <div class="dropdown" id="dropdownMenu">
+            <div class="dropdown-info">
+                <strong id="headerTeacherName">Teacher</strong>
+                <span id="headerSubjectName">Loading...</span>
+            </div>
+            <div class="dropdown-item danger" onclick="logout()">🚪 Logout</div>
+        </div>
+    </div>
+</div>
+
+<div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h3>Teacher Dashboard</h3>
+        <div class="menu-item active" onclick="showSection('overview')">📊 Overview</div>
+        <div class="menu-item" onclick="showSection('students')">👥 My Students</div>
+        <div class="menu-item" onclick="showSection('markAttendance')">📅 Mark Attendance</div>
+        <div class="menu-item" onclick="showSection('enterMarks')">✏️ Enter Marks</div>
+        <div class="menu-item" onclick="showSection('attendanceReport')">📋 Attendance Report</div>
+        <div class="menu-item" onclick="showSection('marksReport')">📈 Marks Report</div>
+        <div class="menu-item" onclick="showSection('results')">📄 Results</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- OVERVIEW -->
+        <div id="overview" class="section active">
+            <div class="page-header">
+                <h2 id="overviewTitle">My Dashboard</h2>
+                <p id="overviewSub">Loading your subject data...</p>
+            </div>
+            <div id="overviewContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- MY STUDENTS -->
+        <div id="students" class="section">
+            <div class="page-header">
+                <h2>My Students</h2>
+                <p>All students enrolled in your subject</p>
+            </div>
+            <div id="studentsContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- MARK ATTENDANCE -->
+        <div id="markAttendance" class="section">
+            <div class="page-header">
+                <h2>Mark Attendance</h2>
+                <p>Mark present or absent for each student today</p>
+            </div>
+            <div id="markAttendContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- ENTER MARKS -->
+        <div id="enterMarks" class="section">
+            <div class="page-header">
+                <h2>Enter Marks</h2>
+                <p>Add or update marks for your subject</p>
+            </div>
+            <div id="enterMarksContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- ATTENDANCE REPORT -->
+        <div id="attendanceReport" class="section">
+            <div class="page-header">
+                <h2>Attendance Report</h2>
+                <p>Subject-wise attendance summary for all students</p>
+            </div>
+            <div id="attendanceReportContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- MARKS REPORT -->
+        <div id="marksReport" class="section">
+            <div class="page-header">
+                <h2>Marks Report</h2>
+                <p>Subject-wise marks and performance</p>
+            </div>
+            <div id="marksReportContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="results" class="section">
+            <div class="page-header">
+                <h2>Results</h2>
+                <p>Pass / Fail summary for your subject</p>
+            </div>
+            <div id="resultsContent"><p style="color:#94a3b8;">Loading...</p></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const API        = 'http://127.0.0.1:5000';
+const TEACHER_ID = localStorage.getItem('teacher_id');
+const T_NAME     = localStorage.getItem('teacher_name');
+const SUBJECT_ID = localStorage.getItem('subject_id');
+const COLLEGE_ID = localStorage.getItem('college_id');
+
+if (!TEACHER_ID) {
+    alert('Please login first');
+    window.location.href = 'login.html';
+}
+
+document.getElementById('headerTeacherName').textContent = T_NAME || 'Teacher';
+
+// ── TOGGLE DROPDOWN ──
+function toggleDropdown() {
+    const m = document.getElementById('dropdownMenu');
+    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+window.addEventListener('click', e => {
+    if (!e.target.closest('.avatar-container'))
+        document.getElementById('dropdownMenu').style.display = 'none';
+});
+
+// ── LOGOUT ──
+function logout() {
+    ['teacher_id','teacher_name','teacher_email','subject_id','college_id','role'].forEach(k => localStorage.removeItem(k));
+    window.location.href = 'login.html';
+}
+
+// ── SHOW SECTION ──
+const loaded = {};
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (!loaded[id]) {
+        loaded[id] = true;
+        if (id === 'overview')          loadOverview();
+        if (id === 'students')          loadStudents();
+        if (id === 'markAttendance')    loadMarkAttendance();
+        if (id === 'enterMarks')        loadEnterMarks();
+        if (id === 'attendanceReport')  loadAttendanceReport();
+        if (id === 'marksReport')       loadMarksReport();
+        if (id === 'results')           loadResults();
+    }
+}
+
+// ── HELPERS ──
+function barColor(pct) {
+    if (pct >= 75) return '#16a34a';
+    if (pct >= 50) return '#d97706';
+    return '#dc2626';
+}
+
+// ── LOAD OVERVIEW ──
+async function loadOverview() {
+    try {
+        const res  = await fetch(`${API}/teacher/overview/${TEACHER_ID}`);
+        const data = await res.json();
+        if (data.error) { document.getElementById('overviewContent').innerHTML = `<p style="color:red;">${data.error}</p>`; return; }
+
+        document.getElementById('overviewTitle').textContent = `Welcome, ${T_NAME}`;
+        document.getElementById('overviewSub').textContent   = `Subject: ${data.subject_name} · Max marks: ${data.max_marks}`;
+        document.getElementById('headerSubjectName').textContent = data.subject_name;
+
+        const passRate = data.total_students > 0 ? Math.round((data.passed / data.total_students) * 100) : 0;
+
+        document.getElementById('overviewContent').innerHTML = `
+        <div class="subject-banner">
+            <div>
+                <h3>${data.subject_name}</h3>
+                <p>Your subject this academic year</p>
+            </div>
+            <div class="subject-banner-right">
+                <span>${data.total_students}</span>
+                <p>Total students</p>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-label">Total Students</div>
+                <div class="kpi-value">${data.total_students}</div>
+                <div class="kpi-sub">In your subject</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Avg Marks</div>
+                <div class="kpi-value" style="color:${barColor((data.avg_marks/data.max_marks)*100)};">${data.avg_marks}</div>
+                <div class="kpi-sub">Out of ${data.max_marks}</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Avg Attendance</div>
+                <div class="kpi-value" style="color:${barColor(data.avg_attendance)};">${data.avg_attendance}%</div>
+                <div class="kpi-sub">Class average</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Pass Rate</div>
+                <div class="kpi-value" style="color:${barColor(passRate)};">${passRate}%</div>
+                <div class="kpi-sub">${data.passed} passed · ${data.failed} failed</div>
+            </div>
+        </div>
+
+        <div class="grid2">
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-title">Pass vs Fail</div>
+                <div class="chart-wrap" style="height:200px;">
+                    <canvas id="passChart"></canvas>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-title">Quick Summary</div>
+                <table class="table">
+                    <tr><td style="color:#64748b;">Subject</td><td style="font-weight:600;">${data.subject_name}</td></tr>
+                    <tr><td style="color:#64748b;">Max Marks</td><td style="font-weight:600;">${data.max_marks}</td></tr>
+                    <tr><td style="color:#64748b;">Students</td><td style="font-weight:600;">${data.total_students}</td></tr>
+                    <tr><td style="color:#64748b;">Avg Marks</td><td style="font-weight:600;">${data.avg_marks}</td></tr>
+                    <tr><td style="color:#64748b;">Avg Attendance</td><td style="font-weight:600;">${data.avg_attendance}%</td></tr>
+                    <tr><td style="color:#64748b;">Passed</td><td><span class="pill pill-green">${data.passed}</span></td></tr>
+                    <tr><td style="color:#64748b;">Failed</td><td><span class="pill pill-red">${data.failed}</span></td></tr>
+                </table>
+            </div>
+        </div>`;
+
+        new Chart(document.getElementById('passChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pass', 'Fail'],
+                datasets: [{ data: [data.passed, data.failed], backgroundColor: ['#16a34a', '#dc2626'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+
+    } catch(e) {
+        document.getElementById('overviewContent').innerHTML = `<p style="color:red;">Could not load. Is Flask running?</p>`;
+    }
+}
+
+// ── LOAD STUDENTS ──
+async function loadStudents() {
+    try {
+        const [studRes, formRes] = await Promise.all([
+            fetch(`${API}/teacher/students/${TEACHER_ID}`),
+            fetch(`${API}/teacher/form-data`)
+        ]);
+        const studData = await studRes.json();
+        const formData = await formRes.json();
+
+        if (studData.error) {
+            document.getElementById('studentsContent').innerHTML = `<p style="color:red;">${studData.error}</p>`;
+            return;
+        }
+
+        // build course and college options
+        const courseOptions = formData.courses.map(c =>
+            `<option value="${c.course_id}">${c.course_name}</option>`).join('');
+        const collegeOptions = formData.colleges.map(c =>
+            `<option value="${c.college_id}">${c.college_name}</option>`).join('');
+
+        // build student rows
+        const rows = studData.students.map((s, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td style="font-weight:600;">${s.name}</td>
+                <td><span class="pill pill-blue">${s.course_name}</span></td>
+                <td>${s.college_name}</td>
+                <td>${s.phone || '-'}</td>
+                <td>${s.email}</td>
+            </tr>`).join('');
+
+      document.getElementById('studentsContent').innerHTML = `
+
+<!-- STUDENTS TABLE (TOP) -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-title">All Students <span>${studData.students.length} total</span></div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th><th>Name</th><th>Course</th>
+                <th>College</th><th>Phone</th><th>Email</th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>
+</div>
+
+<!-- ADD STUDENT FORM (BOTTOM) -->
+<div class="card">
+    <div class="card-title">Add New Student</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="s_name" placeholder="Enter full name">
+        </div>
+        <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" id="s_dob">
+        </div>
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="s_phone" placeholder="Phone number">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="s_email" placeholder="Email address">
+        </div>
+      
+        <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="s_address" placeholder="Address">
+        </div>
+        <div class="form-group">
+            <label>Father's Name</label>
+            <input type="text" id="s_father" placeholder="Father's name">
+        </div>
+        <div class="form-group">
+            <label>Mother's Name</label>
+            <input type="text" id="s_mother" placeholder="Mother's name">
+        </div>
+        <div class="form-group">
+            <label>Course</label>
+            <select id="s_course">${courseOptions}</select>
+        </div>
+        <div class="form-group">
+            <label>College</label>
+            <select id="s_college">${collegeOptions}</select>
+        </div>
+    </div>
+
+    <div style="margin-top:8px;">
+        <div class="msg msg-success" id="addStudentSuccess"></div>
+        <div class="msg msg-error" id="addStudentError"></div>
+        <button class="btn-save" onclick="submitNewStudent()">+ Add Student</button>
+    </div>
+</div>
+`;
+    } catch(e) {
+        document.getElementById('studentsContent').innerHTML = `<p style="color:red;">Could not load students.</p>`;
+    }
+}
+
+async function submitNewStudent() {
+    const name     = document.getElementById('s_name').value.trim();
+    const dob      = document.getElementById('s_dob').value;
+    const phone    = document.getElementById('s_phone').value.trim();
+    const email    = document.getElementById('s_email').value.trim();
+    const address  = document.getElementById('s_address').value.trim();
+    const father   = document.getElementById('s_father').value.trim();
+    const mother   = document.getElementById('s_mother').value.trim();
+    const course_id  = document.getElementById('s_course').value;
+    const college_id = document.getElementById('s_college').value;
+
+    const successEl = document.getElementById('addStudentSuccess');
+    const errorEl   = document.getElementById('addStudentError');
+    successEl.style.display = 'none';
+    errorEl.style.display   = 'none';
+
+    // basic validation
+    if (!name || !dob || !phone || !email || !address || !father || !mother) {
+        errorEl.textContent   = 'Please fill in all fields.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/teacher/add-student`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name, dob, phone, email, 
+                address, father, mother, course_id, college_id
+            })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            successEl.textContent   = data.message;
+            successEl.style.display = 'block';
+            // reload student list
+            loaded['students'] = false;
+            loadStudents();
+        } else {
+            errorEl.textContent   = data.error || 'Failed to add student.';
+            errorEl.style.display = 'block';
+        }
+
+    } catch(e) {
+        errorEl.textContent   = 'Could not connect to server.';
+        errorEl.style.display = 'block';
+    }
+}
+
+// ── LOAD MARK ATTENDANCE ──
+let attendStudents = [];
+async function loadMarkAttendance() {
+    try {
+        const res  = await fetch(`${API}/teacher/students/${TEACHER_ID}`);
+        const data = await res.json();
+        if (data.error) { document.getElementById('markAttendContent').innerHTML = `<p style="color:red;">${data.error}</p>`; return; }
+
+        attendStudents = data.students.map(s => ({ ...s, attendance: 1 })); // default present
+
+        function renderAttendRows() {
+            return attendStudents.map((s, i) => `
+                <div class="student-attend-row">
+                    <div>
+                        <div class="student-attend-name">${s.name}</div>
+                        <div class="student-attend-course">${s.course_name}</div>
+                    </div>
+                    <div class="attend-toggle">
+                        <button class="attend-btn ${s.attendance === 1 ? 'present' : 'inactive'}"
+                            onclick="setAttend(${i}, 1)">✓ Present</button>
+                        <button class="attend-btn ${s.attendance === 0 ? 'absent' : 'inactive'}"
+                            onclick="setAttend(${i}, 0)">✗ Absent</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        document.getElementById('markAttendContent').innerHTML = `
+        <div class="card">
+            <div class="card-title">
+                Mark Attendance
+                <div>
+                    <button class="btn-secondary" onclick="markAll(1)">✓ All Present</button>
+                    <button class="btn-secondary" onclick="markAll(0)">✗ All Absent</button>
+                </div>
+            </div>
+            <div id="attendRows">${renderAttendRows()}</div>
+        </div>
+        <div class="msg msg-success" id="attendSuccess">✅ Attendance saved successfully!</div>
+        <div class="msg msg-error"   id="attendError">❌ Failed to save attendance.</div>
+        <button class="btn-save" onclick="submitAttendance()">💾 Save Attendance</button>`;
+
+        window.setAttend = function(index, val) {
+            attendStudents[index].attendance = val;
+            document.getElementById('attendRows').innerHTML = renderAttendRows();
+        };
+
+        window.markAll = function(val) {
+            attendStudents = attendStudents.map(s => ({ ...s, attendance: val }));
+            document.getElementById('attendRows').innerHTML = renderAttendRows();
+        };
+
+    } catch(e) {
+        document.getElementById('markAttendContent').innerHTML = `<p style="color:red;">Could not load.</p>`;
+    }
+}
+
+async function submitAttendance() {
+    try {
+        const records = attendStudents.map(s => ({ student_id: s.student_id, attendance: s.attendance }));
+        const res = await fetch(`${API}/teacher/attendance/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_id: parseInt(SUBJECT_ID), records })
+        });
+        const data = await res.json();
+        const el = document.getElementById(res.ok ? 'attendSuccess' : 'attendError');
+        el.textContent = data.message || data.error;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    } catch(e) {
+        document.getElementById('attendError').style.display = 'block';
+    }
+}
+
+// ── LOAD ENTER MARKS ──
+let marksStudents = [];
+async function loadEnterMarks() {
+    try {
+        // get students + existing marks
+        const [studRes, marksRes] = await Promise.all([
+            fetch(`${API}/teacher/students/${TEACHER_ID}`),
+            fetch(`${API}/teacher/marks/report/${TEACHER_ID}`)
+        ]);
+        const studData  = await studRes.json();
+        const marksData = await marksRes.json();
+
+        if (studData.error) { document.getElementById('enterMarksContent').innerHTML = `<p style="color:red;">${studData.error}</p>`; return; }
+
+        // build existing marks lookup
+        const existingMarks = {};
+        if (!marksData.error) {
+            marksData.report.forEach(r => { existingMarks[r.student_id] = r.marks_obtained; });
+        }
+
+        marksStudents = studData.students.map(s => ({
+            ...s,
+            marks: existingMarks[s.student_id] !== undefined ? existingMarks[s.student_id] : ''
+        }));
+
+        const rows = marksStudents.map((s, i) => `
+            <div class="marks-input-row">
+                <div class="marks-name">${s.name}</div>
+                <div class="marks-course">${s.course_name}</div>
+                <input class="marks-field" type="number" min="0" max="100"
+                    value="${s.marks}" placeholder="—"
+                    id="marks_${i}"
+                    oninput="marksStudents[${i}].marks = this.value">
+            </div>`).join('');
+
+        document.getElementById('enterMarksContent').innerHTML = `
+        <div class="card">
+            <div class="card-title">Enter / Update Marks <span>Existing marks are pre-filled</span></div>
+            <div>${rows}</div>
+        </div>
+        <div class="msg msg-success" id="marksSuccess">✅ Marks saved successfully!</div>
+        <div class="msg msg-error"   id="marksError">❌ Failed to save marks.</div>
+        <button class="btn-save" onclick="submitMarks()">💾 Save Marks</button>`;
+
+    } catch(e) {
+        document.getElementById('enterMarksContent').innerHTML = `<p style="color:red;">Could not load.</p>`;
+    }
+}
+
+async function submitMarks() {
+    try {
+        const records = marksStudents
+            .filter(s => s.marks !== '' && s.marks !== null)
+            .map(s => ({ student_id: s.student_id, marks: parseFloat(s.marks) }));
+
+        if (records.length === 0) {
+            document.getElementById('marksError').textContent = 'Please enter marks for at least one student.';
+            document.getElementById('marksError').style.display = 'block';
+            setTimeout(() => document.getElementById('marksError').style.display = 'none', 3000);
+            return;
+        }
+
+        const res = await fetch(`${API}/teacher/marks/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject_id: parseInt(SUBJECT_ID), records })
+        });
+        const data = await res.json();
+        const el = document.getElementById(res.ok ? 'marksSuccess' : 'marksError');
+        el.textContent = data.message || data.error;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+
+        // reload marks report if already loaded
+        if (loaded['marksReport']) {
+            loaded['marksReport'] = false;
+            loadMarksReport();
+        }
+    } catch(e) {
+        document.getElementById('marksError').style.display = 'block';
+    }
+}
+
+// ── LOAD ATTENDANCE REPORT ──
+async function loadAttendanceReport() {
+    try {
+        const res  = await fetch(`${API}/teacher/attendance/report/${TEACHER_ID}`);
+        const data = await res.json();
+        if (data.error) { document.getElementById('attendanceReportContent').innerHTML = `<p style="color:red;">${data.error}</p>`; return; }
+
+        const rows = data.report.map(r => `
+            <tr>
+                <td style="font-weight:600;">${r.name}</td>
+                <td>${r.present}</td>
+                <td>${r.total}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                            <div style="width:${r.percentage}%;height:7px;background:${barColor(r.percentage)};border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:12px;font-weight:600;color:${barColor(r.percentage)};width:38px;">${r.percentage}%</span>
+                    </div>
+                </td>
+                <td><span class="pill ${r.status === 'Good' ? 'pill-green' : 'pill-red'}">${r.status}</span></td>
+            </tr>`).join('');
+
+        const good = data.report.filter(r => r.status === 'Good').length;
+        const low  = data.report.length - good;
+
+        document.getElementById('attendanceReportContent').innerHTML = `
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="kpi"><div class="kpi-label">Total Students</div><div class="kpi-value">${data.report.length}</div></div>
+            <div class="kpi"><div class="kpi-label">Good (≥75%)</div><div class="kpi-value" style="color:#16a34a;">${good}</div></div>
+            <div class="kpi"><div class="kpi-label">Low (&lt;75%)</div><div class="kpi-value" style="color:#dc2626;">${low}</div></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Student-wise Attendance <span>Sorted by name</span></div>
+            <table class="table">
+                <thead><tr><th>Student</th><th>Present</th><th>Total Classes</th><th>Percentage</th><th>Status</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    } catch(e) {
+        document.getElementById('attendanceReportContent').innerHTML = `<p style="color:red;">Could not load.</p>`;
+    }
+}
+
+// ── LOAD MARKS REPORT ──
+async function loadMarksReport() {
+    try {
+        const res  = await fetch(`${API}/teacher/marks/report/${TEACHER_ID}`);
+        const data = await res.json();
+        if (data.error) { document.getElementById('marksReportContent').innerHTML = `<p style="color:red;">${data.error}</p>`; return; }
+
+        const rows = data.report.map(r => `
+            <tr>
+                <td style="font-weight:600;">${r.name}</td>
+                <td style="font-weight:700;color:${barColor(r.percentage)};">${r.marks_obtained}</td>
+                <td style="color:#94a3b8;">${r.max_marks}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;min-width:60px;">
+                            <div style="width:${r.percentage}%;height:6px;background:${barColor(r.percentage)};border-radius:3px;"></div>
+                        </div>
+                        <span style="font-size:11px;color:#94a3b8;width:36px;">${r.percentage}%</span>
+                    </div>
+                </td>
+                <td style="font-weight:700;color:${barColor(r.percentage)};">${r.grade}</td>
+                <td><span class="pill ${r.status === 'Pass' ? 'pill-green' : 'pill-red'}">${r.status}</span></td>
+            </tr>`).join('');
+
+        document.getElementById('marksReportContent').innerHTML = `
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+            <div class="kpi"><div class="kpi-label">Class Average</div><div class="kpi-value">${data.class_avg}</div></div>
+            <div class="kpi"><div class="kpi-label">Highest</div><div class="kpi-value" style="color:#16a34a;">${data.highest_marks}</div><div class="kpi-sub">${data.highest_student}</div></div>
+            <div class="kpi"><div class="kpi-label">Lowest</div><div class="kpi-value" style="color:#dc2626;">${data.lowest_marks}</div><div class="kpi-sub">${data.lowest_student}</div></div>
+            <div class="kpi"><div class="kpi-label">Total Students</div><div class="kpi-value">${data.report.length}</div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Marks Comparison <span>Sorted by marks (highest first)</span></div>
+            <div class="chart-wrap">
+                <canvas id="marksBarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Detailed Marks Table</div>
+            <table class="table">
+                <thead><tr><th>Student</th><th>Marks</th><th>Max</th><th>Progress</th><th>Grade</th><th>Status</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+
+        new Chart(document.getElementById('marksBarChart'), {
+            type: 'bar',
+            data: {
+                labels: data.report.map(r => r.name),
+                datasets: [{
+                    label: 'Marks Obtained',
+                    data: data.report.map(r => r.marks_obtained),
+                    backgroundColor: data.report.map(r => barColor(r.percentage)),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+    } catch(e) {
+        document.getElementById('marksReportContent').innerHTML = `<p style="color:red;">Could not load.</p>`;
+    }
+}
+
+// ── LOAD RESULTS ──
+async function loadResults() {
+    try {
+        const res  = await fetch(`${API}/teacher/results/${TEACHER_ID}`);
+        const data = await res.json();
+        if (data.error) { document.getElementById('resultsContent').innerHTML = `<p style="color:red;">${data.error}</p>`; return; }
+
+        const rows = data.results.map(r => `
+            <tr>
+                <td style="font-weight:600;">${r.name}</td>
+                <td><span class="pill pill-blue">${r.course_name}</span></td>
+                <td style="font-weight:700;">${r.marks_obtained}</td>
+                <td style="color:#94a3b8;">${r.max_marks}</td>
+                <td><span class="pill ${r.status === 'Pass' ? 'pill-green' : 'pill-red'}"
+                    style="font-size:12px;padding:4px 14px;">${r.status}</span></td>
+            </tr>`).join('');
+
+        const passRate = data.total > 0 ? Math.round((data.passed / data.total) * 100) : 0;
+
+        document.getElementById('resultsContent').innerHTML = `
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Total Students</div><div class="kpi-value">${data.total}</div></div>
+            <div class="kpi"><div class="kpi-label">Passed</div><div class="kpi-value" style="color:#16a34a;">${data.passed}</div><div class="kpi-sub up">Students</div></div>
+            <div class="kpi"><div class="kpi-label">Failed</div><div class="kpi-value" style="color:#dc2626;">${data.failed}</div><div class="kpi-sub">Students</div></div>
+            <div class="kpi"><div class="kpi-label">Pass Rate</div><div class="kpi-value" style="color:${barColor(passRate)};">${passRate}%</div></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Student Results <span>Your subject</span></div>
+            <table class="table">
+                <thead><tr><th>Student</th><th>Course</th><th>Marks</th><th>Max</th><th>Result</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    } catch(e) {
+        document.getElementById('resultsContent').innerHTML = `<p style="color:red;">Could not load.</p>`;
+    }
+}
+
+// ── AUTO LOAD OVERVIEW ON PAGE LOAD ──
+window.addEventListener('DOMContentLoaded', () => {
+    loaded['overview'] = true;
+    loadOverview();
+});
+</script>
+</body>
+</html>

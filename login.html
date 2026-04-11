@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: color-mix(in srgb-linear, blue 50%, white 60%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            width: 340px;
+            background: white;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 22px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        /* Toggle buttons */
+        .toggle-wrap {
+            display: flex;
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 22px;
+            gap: 4px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            color: #888;
+            transition: 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #007bff;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,123,255,0.3);
+        }
+
+        /* Role badge */
+        .role-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .badge-student { background: #e8f4ff; color: #007bff; }
+        .badge-teacher { background: #fff3e0; color: #e65100; }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 7px 0;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 11px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover { background: #0056b3; }
+
+        .login-btn.teacher-btn { background: #e65100; }
+        .login-btn.teacher-btn:hover { background: #bf360c; }
+
+        .error-msg {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 18px 0 14px;
+        }
+
+        .register-link {
+            font-size: 12px;
+            color: #888;
+            margin-top: 14px;
+        }
+
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Vijaya College Portal</p>
+
+    <!-- Toggle -->
+    <div class="toggle-wrap">
+        <button class="toggle-btn active" id="btnStudent" onclick="switchRole('student')">
+            👤 Student
+        </button>
+        <button class="toggle-btn" id="btnTeacher" onclick="switchRole('teacher')">
+            🎓 Teacher
+        </button>
+    </div>
+
+    <!-- Badge -->
+    <span class="role-badge badge-student" id="roleBadge">Student Login</span>
+
+    <!-- Form -->
+    <input type="email" id="email" placeholder="Email address" />
+    <input type="password" id="password" placeholder="Password" />
+
+    <button class="login-btn" id="loginBtn" onclick="login()">Login as Student</button>
+
+    <p class="error-msg" id="errorMsg"></p>
+
+    <div class="divider"></div>
+    <div class="register-link">
+        New student? <a href="register.html">Register here</a>
+    </div>
+</div>
+
+<script>
+    let currentRole = 'student';
+
+    function switchRole(role) {
+        currentRole = role;
+
+        const btnStudent = document.getElementById('btnStudent');
+        const btnTeacher = document.getElementById('btnTeacher');
+        const badge      = document.getElementById('roleBadge');
+        const loginBtn   = document.getElementById('loginBtn');
+
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('email').value    = '';
+        document.getElementById('password').value = '';
+
+        if (role === 'student') {
+            btnStudent.classList.add('active');
+            btnTeacher.classList.remove('active');
+            badge.textContent  = 'Student Login';
+            badge.className    = 'role-badge badge-student';
+            loginBtn.textContent = 'Login as Student';
+            loginBtn.className = 'login-btn';
+        } else {
+            btnTeacher.classList.add('active');
+            btnStudent.classList.remove('active');
+            badge.textContent  = 'Teacher Login';
+            badge.className    = 'role-badge badge-teacher';
+            loginBtn.textContent = 'Login as Teacher';
+            loginBtn.className = 'login-btn teacher-btn';
+        }
+    }
+
+    async function login() {
+        const email    = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+
+        errorMsg.style.display = 'none';
+
+        if (!email || !password) {
+            errorMsg.textContent   = 'Please enter email and password.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        try {
+            const url = currentRole === 'student'
+                ? 'http://127.0.0.1:5000/login'
+                : 'http://127.0.0.1:5000/teacher/login';
+
+            const res  = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                if (currentRole === 'student') {
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('role', 'student');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    localStorage.setItem('teacher_id',   result.teacher_id);
+                    localStorage.setItem('teacher_name', result.name);
+                    localStorage.setItem('teacher_email', email);
+                    localStorage.setItem('subject_id',   result.subject_id);
+                    localStorage.setItem('college_id',   result.college_id);
+                    localStorage.setItem('role', 'teacher');
+                    window.location.href = 'teacher_dashboard.html';
+                }
+            } else {
+                errorMsg.textContent   = result.message || 'Invalid credentials ❌';
+                errorMsg.style.display = 'block';
+            }
+
+        } catch (e) {
+            errorMsg.textContent   = 'Cannot connect to server. Is Flask running?';
+            errorMsg.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
